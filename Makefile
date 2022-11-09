@@ -11,11 +11,11 @@ build:
 
 down:
 	@printf "Stopping configuration ${name}...\n"
-	@docker-compose -f ./srcs/docker-compose.yml --env-file srcs/.env down
+	@docker-compose -f ./requirements/srcs/docker-compose.yml --env-file srcs/.env down
 
 re:
 	@printf "Rebuild configuration ${name}...\n"
-	@docker-compose -f ./srcs/docker-compose.yml --env-file srcs/.env up -d --build
+	@docker-compose -f ./requirements/srcs/docker-compose.yml --env-file srcs/.env up -d --build
 
 clean: down
 	@printf "Cleaning configuration ${name}...\n"
@@ -23,7 +23,6 @@ clean: down
 	@sudo rm -rf ~/data/wordpress/*
 	@sudo rm -rf ~/data/mariadb/*
 
-# Осторожно! Fclean удаляет все образы Docker которые есть на машине!
 fclean:
 	@printf "Total clean of all configurations docker\n"
 	@docker stop $$(docker ps -qa)
