@@ -1,41 +1,34 @@
-FROM alpine:3.16
-ARG PHP_VERSION=8 \
-    DB_NAME \
-    DB_USER \
-    DB_PASS
-RUN apk update && apk upgrade && apk add --no-cache \
-    php${PHP_VERSION} \
-    php${PHP_VERSION}-fpm \
-    php${PHP_VERSION}-mysqli \
-    php${PHP_VERSION}-json \
-    php${PHP_VERSION}-curl \
-    php${PHP_VERSION}-dom \
-    php${PHP_VERSION}-exif \
-    php${PHP_VERSION}-fileinfo \
-    php${PHP_VERSION}-mbstring \
-    php${PHP_VERSION}-openssl \
-    php${PHP_VERSION}-xml \
-    php${PHP_VERSION}-zip \
-    php${PHP_VERSION}-redis \
-    wget \
-    unzip && \
-    sed -i "s|listen = 127.0.0.1:9000|listen = 9000|g" \
-      /etc/php8/php-fpm.d/www.conf && \
-    sed -i "s|;listen.owner = nobody|listen.owner = nobody|g" \
-      /etc/php8/php-fpm.d/www.conf && \
-    sed -i "s|;listen.group = nobody|listen.group = nobody|g" \
-      /etc/php8/php-fpm.d/www.conf && \
-    rm -f /var/cache/apk/*
-WORKDIR /var/www
-RUN wget https://wordpress.org/latest.zip && \
-    unzip latest.zip && \
-    cp -rf wordpress/* . && \
-    rm -rf wordpress latest.zip
-RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
-  && chmod +x wp-cli.phar \
-  && mv wp-cli.phar /usr/local/bin/wp
-  
-COPY ./requirements/wordpress/conf/wp-config-create.sh .
-RUN sh wp-config-create.sh && rm wp-config-create.sh && \
-    chmod -R 0777 wp-content/
-CMD ["/usr/sbin/php-fpm8", "-F"]
+FROM alpine:3.16.2
+
+ARG UID GID
+
+RUN addgroup -g $GID wordpress && adduser -D -u $UID -G wordpress wordpress \
+    && apk update \
+    && apk upgrade --no-cache \
+    && apk add --no-cache sudo php8 php8-fpm php8-opcache php8-gd \
+    php8-mysqli php8-zlib php8-curl php8-iconv curl php-phar mariadb-client \
+    && echo wordpress ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/wordpress
+
+USER wordpress
+
+EXPOSE 9000
+
+RUN sudo curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && sudo chmod +x wp-cli.phar && sudo mv wp-cli.phar /usr/local/bin/wp \
+    && sudo mkdir -p /var/www/wordpress /var/log/php-fpm8 \
+    && sudo chown -R wordpress:wordpress /var/www/wordpress /var/log/php-fpm8 \
+    && wp core download --path=/var/www/wordpress
+
+WORKDIR /etc/php8/php-fpm.d
+
+RUN sudo rm -rf *.conf
+
+ADD tools/ .
+ADD conf/ .
+
+RUN sudo chown -R wordpress:wordpress /etc/php8 \
+    && sudo chown -R wordpress:wordpress /var/log/php8 \
+    && chmod +x docker-entrypoint.sh
+ENTRYPOINT ["./docker-entrypoint.sh"]
+
+CMD ["php-fpm8", "--nodaemonize"]
