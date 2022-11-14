@@ -2,8 +2,9 @@ FROM alpine:3.16.2
 
 ARG UID GID
 
-RUN addgroup -g $GID wordpress && adduser -D -u $UID -G wordpress wordpress \
-    && apk update \
+RUN addgroup -g $GID wordpress 
+RUN adduser -D -u $UID -G wordpress wordpress 
+RUN apk update \
     && apk upgrade --no-cache \
     && apk add --no-cache sudo php8 php8-fpm php8-opcache php8-gd \
     php8-mysqli php8-zlib php8-curl php8-iconv curl php-phar mariadb-client \
@@ -23,8 +24,8 @@ WORKDIR /etc/php8/php-fpm.d
 
 RUN sudo rm -rf *.conf
 
-ADD tools/ .
-ADD conf/ .
+ADD requirements/wordpress/tools/ .
+ADD requirements/wordpress/conf/ .
 
 RUN sudo chown -R wordpress:wordpress /etc/php8 \
     && sudo chown -R wordpress:wordpress /var/log/php8 \

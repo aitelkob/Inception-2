@@ -1,23 +1,11 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    docker-entrypoint.sh                               :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: mannouao <mannouao@student.42.fr>          +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2022/10/28 16:50:29 by mannouao          #+#    #+#              #
-#    Updated: 2022/10/28 16:52:46 by mannouao         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 #!/bin/sh
 set -xe
 
 wp config create --path=/var/www/wordpress \
-    --dbname="${WORDPRESS_DB_NAME}" \
-	--dbuser="${WORDPRESS_DB_USER}" \
-	--dbpass="${WORDPRESS_DB_PASSWORD}" \
-	--dbhost="${WORDPRESS_DB_HOST}" \
+    --dbname="wordpress" \
+	--dbuser="wpuser" \
+	--dbpass="wppass" \
+	--dbhost="mariadb" \
 	--force \
 	--extra-php << EOF
 define('WP_REDIS_HOST', 'redis');
@@ -33,12 +21,12 @@ if ! wp core is-installed --path=/var/www/wordpress; then
 		--skip-email
 fi
 
-if ! wp user get ${WORDPRESS_USER_NAME} --path=/var/www/wordpress; then
-	wp user create --path=/var/www/wordpress \
-       		${WORDPRESS_USER_NAME} ${WORDPRESS_USER_EMAIL}\
-		--role=${WORDPRESS_USER_ROLE} \
-		--user_pass=${WORDPRESS_USER_PASSWORD}
-fi
+#if ! wp user get ${WORDPRESS_USER_NAME} --path=/var/www/wordpress; then
+#	wp user create --path=/var/www/wordpress \
+#       		${WORDPRESS_USER_NAME} ${WORDPRESS_USER_EMAIL}\
+#		--role=${WORDPRESS_USER_ROLE} \
+#		--user_pass=${WORDPRESS_USER_PASSWORD}
+#fi
 
 if ! wp plugin is-installed redis-cache --path=/var/www/wordpress; then
 	wp plugin install redis-cache --path=/var/www/wordpress

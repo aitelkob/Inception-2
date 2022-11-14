@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: requirements/nginx/Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
     container_name: nginx
     depends_on:
       - wordpress
@@ -14,7 +17,7 @@ services:
     volumes:
       - ./requirements/nginx/conf/:/etc/nginx/http.d/
       - ./requirements/nginx/tools:/etc/nginx/ssl/
-      - wp-volume:/var/www/
+      - wp-volume:/var/www/wordpress/
     restart: always
 
   mariadb:
@@ -43,13 +46,25 @@ services:
         DB_NAME: ${DB_NAME}
         DB_USER: ${DB_USER}
         DB_PASS: ${DB_PASS}
+        UID: ${UID}
+        GID: ${GID}
     container_name: wordpress
     depends_on:
       - mariadb
+    environment:
+      - WORDPRESS_SITE_NAME=${WORDPRESS_SITE_NAME}
+      - WORDPRESS_SITE_TITLE=${WORDPRESS_SITE_TITLE}
+      - WORDPRESS_ADMIN_NAME=${WORDPRESS_SITE_TITLE}
+      - WORDPRESS_ADMIN_PASSWORD=${WORDPRESS_ADMIN_PASSWORD}
+      - WORDPRESS_ADMIN_EMAIL=${WORDPRESS_ADMIN_EMAIL}
+      - WORDPRESS_USER_NAME=${WORDPRESS_USER_NAME}
+      - WORDPRESS_USER_EMAIL=${WORDPRESS_USER_EMAIL}
+      - WORDPRESS_USER_ROLE=${WORDPRESS_USER_ROLE}
+      - WORDPRESS_USER_PASSWORD=${WORDPRESS_USER_PASSWORD}
     networks:
       - inception
     volumes:
-      - wp-volume:/var/www/
+      - wp-volume:/var/www/wordpress
     restart: always
 
   redis:
@@ -115,7 +130,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - pr-volume:/data
     ports:
-      - "9000:9000"
+      - "90:90"
 
 volumes:
   wp-volume:
