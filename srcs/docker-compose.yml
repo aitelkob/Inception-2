@@ -61,6 +61,10 @@ services:
       - WORDPRESS_USER_EMAIL=${WORDPRESS_USER_EMAIL}
       - WORDPRESS_USER_ROLE=${WORDPRESS_USER_ROLE}
       - WORDPRESS_USER_PASSWORD=${WORDPRESS_USER_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+
     networks:
       - inception
     volumes:
@@ -118,20 +122,20 @@ services:
     ports:
       - "8090:8090"
     restart: always
-  
   portainer:
-    image: portainer/portainer-ce:latest
     container_name: portainer
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
+    build: ./requirements/bonus/portainer/
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - pr-volume:/data
+    restart: always
+    depends_on:
+      - wordpress
+    networks:
+      - inception
     ports:
-      - "90:90"
-
+      - "8000:8000"
+      - "9443:9443"
 volumes:
   wp-volume:
     driver_opts:

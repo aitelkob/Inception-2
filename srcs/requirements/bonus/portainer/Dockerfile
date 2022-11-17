@@ -1,26 +1,32 @@
-FROM alpine:3.16.2
+FROM alpine:latest
 
-ARG UID GID
+ENV PORTAINER_VERSION=2.14.2 \
+    PORTAINER_HOME=/var/lib/portainer
 
-RUN addgroup -g $GID portfolio && adduser -D -u $UID -G portfolio portfolio \
-    && apk update \
-    && apk upgrade --no-cache \
-    && apk add --no-cache sudo php8 php8-session php8-mysqli \
-    && echo portfolio ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/portfolio
+LABEL maintainer="aitkob@gmail.com" \
+      org.label-schema.build-date="25.08.2022" \
+      org.label-schema.name="inception portainer" \
+      org.label-schema.description="inception portainer image" \
+      org.label-schema.version="$PORTAINER_VERSION"
 
-USER portfolio
+RUN apk update && \
+    apk upgrade && \
+    apk add bash bind-tools ca-certificates curl jq tar
 
-EXPOSE 8080
+RUN mkdir ${PORTAINER_HOME} && \
+    addgroup -S portainer && \
+    adduser -S -D -g "" -G portainer -s /bin/sh -h ${PORTAINER_HOME} portainer && \
+    chown portainer:portainer ${PORTAINER_HOME}
 
-WORKDIR /var/www/html
+EXPOSE 9443 8000
 
-ADD portfolio/ .
-ADD tools/ .
+RUN curl -sSL https://github.com/portainer/portainer/releases/download/${PORTAINER_VERSION}/portainer-${PORTAINER_VERSION}-linux-amd64.tar.gz | \
+    tar -xzo -C /usr/local
 
-RUN sudo chown -R portfolio:portfolio /var/www/html \
-    && chmod +x docker-entrypoint.sh
+RUN apk del tar && \
+    rm -rf /var/cache/apk/*
 
-RUN chmod +x docker-entrypoint.sh
-ENTRYPOINT ["./docker-entrypoint.sh"]
 
-CMD ["php", "-S", "0.0.0.0:8080", "-t","/var/www/html"]
+CMD ["/usr/local/portainer/portainer"]
+
+

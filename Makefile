@@ -25,6 +25,7 @@ clean: down
 	@docker system prune -a
 	@sudo rm -rf ~/data/wordpress/*
 	@sudo rm -rf ~/data/mariadb/*
+	@sudo rm -rf ~/data/portainer/*
 
 fclean: down
 	@printf "Total clean of all configurations docker\n"
@@ -34,5 +35,6 @@ fclean: down
 	@rm -rf srcs/requirements/nginx/tools/*.42.fr*
 	@sudo rm -rf ~/data/wordpress/*
 	@sudo rm -rf ~/data/mariadb/*
+	@sudo rm -rf ~/data/portainer/*
 
 .PHONY	: all build down re clean fclean

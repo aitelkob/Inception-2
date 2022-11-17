@@ -9,6 +9,7 @@ RUN echo "server {" > /etc/nginx/http.d/default.conf && \
     echo "}}" >> /etc/nginx/http.d/default.conf
 
 COPY requirements/bonus/website/conf/* /var/www/
+RUN  chmod 777 /var/www/*
 
 EXPOSE 8090
 CMD ["nginx", "-g", "daemon off;"]
