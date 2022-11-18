@@ -14,22 +14,25 @@ EOF
 if ! wp core is-installed --path=/var/www/wordpress; then
 	wp core install --path=/var/www/wordpress \
     --allow-root \
-		--url="${WORDPRESS_SITE_NAME}" \
+		--url="${DOMAIN_NAME}" \
 		--title="${WORDPRESS_SITE_TITLE}" \
 		--admin_user="${DB_USER}" \
-		--admin_password="${BD_PASS}" \
+		--admin_password="${WORDPRESS_ADMIN_PASSWORD}" \
 		--admin_email="${WORDPRESS_ADMIN_EMAIL}" \
 		--skip-email
 fi
 
 if ! wp user get ${WORDPRESS_USER_NAME} --path=/var/www/wordpress; then
-  wp user create --path=/var/www/wordpress ${WORDPRESS_USER_NAME} ${WORDPRESS_USER_EMAIL} --user_pass="${WORDPRESS_USER_PASSWORD}" --role=author --allow-root
+  wp user create --path=/var/www/wordpress ${WORDPRESS_USER_NAME} ${WORDPRESS_USER_EMAIL} --user_pass="${WORDPRESS_USER_PASSWORD}" --role=author
 fi
 
 if ! wp plugin is-installed redis-cache --path=/var/www/wordpress; then
 	wp plugin install redis-cache --path=/var/www/wordpress
   wp theme install inspiro --path=/var/www/wordpress --activate
 fi
+
+wp plugin install Disable-Media-Pages  --path=/var/www/wordpress
+wp plugin activate --all  --path=/var/www/wordpress
 
 if ! wp plugin is-active redis-cache --path=/var/www/wordpress; then
 	wp plugin activate redis-cache --path=/var/www/wordpress
