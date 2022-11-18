@@ -7,7 +7,9 @@ services:
       args:
         UID: ${UID}
         GID: ${GID}
+    image: nginx
     container_name: nginx
+
     depends_on:
       - wordpress
     ports:
@@ -30,8 +32,9 @@ services:
         DB_PASS: ${DB_PASS}
         DB_ROOT: ${DB_ROOT}
     container_name: mariadb
-    ports:
-      - "3306:3306"
+    image: mariadb
+    expose:
+      - "3306"
     networks:
       - inception
     volumes:
@@ -49,6 +52,7 @@ services:
         UID: ${UID}
         GID: ${GID}
     container_name: wordpress
+    image: wordpress
     depends_on:
       - mariadb
     environment:
@@ -76,10 +80,11 @@ services:
       context: .
       dockerfile: requirements/bonus/redis/Dockerfile
     container_name: redis
+    image: redis
     depends_on:
       - wordpress
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
     networks:
       - inception
     restart: always
@@ -92,6 +97,7 @@ services:
         FTP_USR: ${FTP_USR}
         FTP_PWD: ${FTP_PWD}
     container_name: vsftpd
+    image: vsftpd
     depends_on:
       - wordpress
     ports:
@@ -107,6 +113,7 @@ services:
       context: .
       dockerfile: requirements/bonus/adminer/Dockerfile
     container_name: adminer
+    image: adminer
     depends_on:
       - mariadb
     ports:
@@ -119,11 +126,16 @@ services:
       context: .
       dockerfile: requirements/bonus/website/Dockerfile
     container_name: website
+    image: website
     ports:
       - "8090:8090"
     restart: always
+    networks:
+      - inception
+
   portainer:
     container_name: portainer
+    image: portainer
     build: ./requirements/bonus/portainer/
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
@@ -138,17 +150,19 @@ services:
       - "9443:9443"
 volumes:
   wp-volume:
+    name: "wordpress"
     driver_opts:
       o: bind
       type: none
       device: /home/${USER}/data/wordpress
   pr-volume:
-    name: "portainerDB"
+    name: "portainer"
     driver_opts:
       type: none
       o: bind
       device: /home/${USER}/data/portainer
   db-volume:
+    name: "mariadb"
     driver_opts:
       o: bind
       type: none
@@ -156,4 +170,5 @@ volumes:
 
 networks:
     inception:
+        name: inception
         driver: bridge
